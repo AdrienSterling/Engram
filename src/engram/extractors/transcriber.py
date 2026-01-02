@@ -119,6 +119,8 @@ class AudioTranscriber:
             # Limit duration to avoid huge files (30 min max)
             "match_filter": yt_dlp.utils.match_filter_func("duration < 1800"),
             # No postprocessors - skip ffmpeg requirement
+            # Use Android client to bypass bot detection
+            "extractor_args": {"youtube": {"player_client": ["android"]}},
         }
 
         try:
