@@ -1,0 +1,53 @@
+# Docker Compose for Engram
+# Usage: docker compose up -d
+
+version: '3.8'
+
+services:
+  engram:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: engram-bot
+    restart: unless-stopped
+
+    # Environment configuration
+    env_file:
+      - .env
+
+    # Volume mounts
+    volumes:
+      # Obsidian vault (adjust path as needed)
+      - ${VAULT_PATH:-./vault}:/vault
+
+      # SSH keys for git operations (optional)
+      # - ~/.ssh:/home/engram/.ssh:ro
+
+    # Override vault path inside container
+    environment:
+      - VAULT_PATH=/vault
+
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+# For development with hot reload
+# Uncomment the following for development mode:
+#
+#   engram-dev:
+#     build:
+#       context: .
+#       dockerfile: Dockerfile
+#     container_name: engram-bot-dev
+#     volumes:
+#       - ./src:/app/src
+#       - ${VAULT_PATH:-./vault}:/vault
+#     env_file:
+#       - .env
+#     environment:
+#       - VAULT_PATH=/vault
+#       - LOG_LEVEL=DEBUG
+#     command: python -m engram.platforms.telegram.bot
