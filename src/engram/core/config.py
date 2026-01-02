@@ -41,6 +41,10 @@ class Settings(BaseSettings):
     groq_api_key: Optional[str] = None
     groq_whisper_model: str = "whisper-large-v3-turbo"
 
+    # === Gemini (for YouTube video analysis) ===
+    gemini_api_key: Optional[str] = None
+    gemini_model: str = "gemini-2.5-flash"
+
     # === General ===
     default_llm: str = "openai"
     log_level: str = "INFO"

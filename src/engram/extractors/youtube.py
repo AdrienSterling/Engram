@@ -17,6 +17,7 @@ from engram.core.types import SourceType
 from engram.core.exceptions import ExtractorError
 from .base import BaseExtractor, ExtractionResult
 from .transcriber import get_transcriber
+from .gemini_youtube import get_gemini_analyzer
 
 logger = logging.getLogger(__name__)
 
@@ -131,34 +132,67 @@ class YouTubeExtractor(BaseExtractor):
         except Exception as e:
             logger.info(f"No subtitles available: {e}")
 
-        # Fallback to Whisper transcription
-        logger.info("Falling back to Whisper transcription...")
+        # Fallback 1: Whisper transcription
         transcriber = get_transcriber()
+        whisper_error = None
 
-        if not transcriber.is_available:
-            raise ExtractorError(
-                "No subtitles available and Groq API key not configured. "
-                "Set GROQ_API_KEY to enable audio transcription."
-            )
+        if transcriber.is_available:
+            logger.info("Falling back to Whisper transcription...")
+            try:
+                full_text = await transcriber.transcribe_youtube(video_id)
 
-        try:
-            full_text = await transcriber.transcribe_youtube(video_id)
+                logger.info(f"Transcribed via Whisper: {len(full_text)} chars")
 
-            logger.info(f"Transcribed via Whisper: {len(full_text)} chars")
+                return ExtractionResult(
+                    title=title,
+                    content=full_text,
+                    source_type=SourceType.YOUTUBE,
+                    source_url=f"https://www.youtube.com/watch?v={video_id}",
+                    language=None,  # Whisper auto-detects
+                    duration=None,
+                    raw_data={"video_id": video_id, "method": "whisper"},
+                )
 
-            return ExtractionResult(
-                title=title,
-                content=full_text,
-                source_type=SourceType.YOUTUBE,
-                source_url=f"https://www.youtube.com/watch?v={video_id}",
-                language=None,  # Whisper auto-detects
-                duration=None,
-                raw_data={"video_id": video_id, "method": "whisper"},
-            )
+            except Exception as e:
+                whisper_error = str(e)
+                logger.warning(f"Whisper transcription failed: {e}")
+        else:
+            logger.info("Whisper not available (no GROQ_API_KEY)")
 
-        except Exception as e:
-            logger.error(f"Whisper transcription failed: {e}")
-            raise ExtractorError(f"Failed to transcribe video: {e}") from e
+        # Fallback 2: Gemini video analysis
+        gemini = get_gemini_analyzer()
+
+        if gemini.is_available:
+            logger.info("Falling back to Gemini video analysis...")
+            try:
+                full_text = await gemini.analyze_video(video_id)
+
+                logger.info(f"Analyzed via Gemini: {len(full_text)} chars")
+
+                return ExtractionResult(
+                    title=title,
+                    content=full_text,
+                    source_type=SourceType.YOUTUBE,
+                    source_url=f"https://www.youtube.com/watch?v={video_id}",
+                    language=None,
+                    duration=None,
+                    raw_data={"video_id": video_id, "method": "gemini"},
+                )
+
+            except Exception as e:
+                logger.error(f"Gemini analysis failed: {e}")
+                # Continue to final error
+        else:
+            logger.info("Gemini not available (no GEMINI_API_KEY)")
+
+        # All methods failed
+        error_parts = ["Failed to extract video content."]
+        if whisper_error:
+            error_parts.append(f"Whisper: {whisper_error}")
+        if not transcriber.is_available and not gemini.is_available:
+            error_parts.append("Configure GROQ_API_KEY or GEMINI_API_KEY for fallback.")
+
+        raise ExtractorError(" ".join(error_parts))
 
     async def _extract_subtitles(self, video_id: str) -> Optional[tuple[str, str, int]]:
         """
