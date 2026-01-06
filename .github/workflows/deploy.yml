@@ -73,7 +73,7 @@ jobs:
           script: |
             set -e
 
-            # 克隆或更新代码
+            # 克隆或更新 Engram 代码
             if [ -d "/opt/app/engram/.git" ]; then
               echo "📦 Updating existing repo..."
               cd /opt/app/engram
@@ -86,18 +86,41 @@ jobs:
               cd /opt/app/engram
             fi
 
+            # 克隆或更新 Obsidian Vault 仓库
+            VAULT_DIR="/opt/app/obsidian-vault"
+            if [ -d "$VAULT_DIR/.git" ]; then
+              echo "📚 Updating obsidian-vault..."
+              cd $VAULT_DIR
+              git pull origin main || true
+            else
+              echo "📚 Cloning obsidian-vault..."
+              rm -rf $VAULT_DIR
+              git clone https://${{ secrets.GH_PAT }}@github.com/AdrienSterling/obsidian-vault.git $VAULT_DIR
+            fi
+
+            # 配置 vault 的 Git 凭证（用于容器内推送）
+            cd $VAULT_DIR
+            git config user.name "Engram Bot"
+            git config user.email "bot@engram.local"
+            git remote set-url origin https://${{ secrets.GH_PAT }}@github.com/AdrienSterling/obsidian-vault.git
+
+            # 确保 vault 目录权限正确
+            chmod -R 777 $VAULT_DIR
+
+            cd /opt/app/engram
+
             # 从 GitHub Secrets 生成 .env 文件
             cat > .env << 'ENVEOF'
             TELEGRAM_TOKEN=${{ secrets.TELEGRAM_TOKEN }}
-            VAULT_PATH=${{ secrets.VAULT_PATH }}
+            VAULT_PATH=/opt/app/obsidian-vault
             OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
             DEEPSEEK_API_KEY=${{ secrets.DEEPSEEK_API_KEY }}
             GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}
             GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
             DEFAULT_LLM=${{ secrets.DEFAULT_LLM }}
-            GIT_ENABLED=${{ secrets.GIT_ENABLED }}
-            GIT_USER_NAME=${{ secrets.GIT_USER_NAME }}
-            GIT_USER_EMAIL=${{ secrets.GIT_USER_EMAIL }}
+            GIT_ENABLED=true
+            GIT_USER_NAME=Engram Bot
+            GIT_USER_EMAIL=bot@engram.local
             LOG_LEVEL=${{ secrets.LOG_LEVEL }}
             ENVEOF
 

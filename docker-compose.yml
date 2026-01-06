@@ -17,11 +17,8 @@ services:
 
     # Volume mounts
     volumes:
-      # Obsidian vault (adjust path as needed)
-      - ${VAULT_PATH:-./vault}:/vault
-
-      # SSH keys for git operations (optional)
-      # - ~/.ssh:/home/engram/.ssh:ro
+      # Obsidian vault - mount the git repo for sync
+      - /opt/app/obsidian-vault:/vault
 
     # Override vault path inside container
     environment:
