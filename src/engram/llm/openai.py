@@ -46,10 +46,7 @@ class OpenAILLM(BaseLLM):
         """Send chat messages to OpenAI."""
         try:
             # Convert to OpenAI format
-            openai_messages = [
-                {"role": msg.role, "content": msg.content}
-                for msg in messages
-            ]
+            openai_messages = [{"role": msg.role, "content": msg.content} for msg in messages]
 
             response = await self.client.chat.completions.create(
                 model=self.model,

@@ -19,6 +19,7 @@ def main():
 
     if command == "bot":
         from engram.platforms.telegram import run_bot
+
         asyncio.run(run_bot())
 
     elif command == "test":

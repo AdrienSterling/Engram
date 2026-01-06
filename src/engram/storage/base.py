@@ -98,9 +98,7 @@ class BaseStorage(ABC):
         pass
 
     @abstractmethod
-    async def add_material_to_knowledge(
-        self, area_id: str, material: Material
-    ) -> str:
+    async def add_material_to_knowledge(self, area_id: str, material: Material) -> str:
         """
         Add material to a knowledge area.
 
@@ -114,9 +112,7 @@ class BaseStorage(ABC):
         pass
 
     @abstractmethod
-    async def update_material_status(
-        self, material_id: str, status: str
-    ) -> bool:
+    async def update_material_status(self, material_id: str, status: str) -> bool:
         """
         Update material digest status.
 

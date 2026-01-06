@@ -23,9 +23,7 @@ def setup_logging(
     """
     # Default format with timestamp, level, module, and message
     if format_string is None:
-        format_string = (
-            "%(asctime)s | %(levelname)-8s | %(name)s:%(lineno)d | %(message)s"
-        )
+        format_string = "%(asctime)s | %(levelname)-8s | %(name)s:%(lineno)d | %(message)s"
 
     # Create formatter
     formatter = logging.Formatter(format_string, datefmt="%Y-%m-%d %H:%M:%S")

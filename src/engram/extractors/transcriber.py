@@ -144,6 +144,7 @@ class AudioTranscriber:
     def _do_download(self, opts: dict, url: str):
         """Perform the actual download (sync)."""
         import yt_dlp
+
         with yt_dlp.YoutubeDL(opts) as ydl:
             ydl.download([url])
 

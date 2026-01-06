@@ -239,7 +239,7 @@ class ArticleExtractor(BaseExtractor):
     def _detect_language(self, content: str) -> Optional[str]:
         """Simple language detection."""
         # Check for Chinese characters
-        chinese_chars = len(re.findall(r'[\u4e00-\u9fff]', content))
+        chinese_chars = len(re.findall(r"[\u4e00-\u9fff]", content))
         total_chars = len(content)
 
         if total_chars > 0 and chinese_chars / total_chars > 0.3:

@@ -239,9 +239,9 @@ class YouTubeExtractor(BaseExtractor):
         """Detect language from transcript object."""
         try:
             # Try to get language from transcript metadata
-            if hasattr(transcript, 'language'):
+            if hasattr(transcript, "language"):
                 return transcript.language
-            if hasattr(transcript, 'language_code'):
+            if hasattr(transcript, "language_code"):
                 return transcript.language_code
         except Exception:
             pass
@@ -280,6 +280,7 @@ class YouTubeExtractor(BaseExtractor):
         """
         try:
             import aiohttp
+
             async with aiohttp.ClientSession() as session:
                 oembed_url = f"https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v={video_id}&format=json"
                 async with session.get(oembed_url) as response:

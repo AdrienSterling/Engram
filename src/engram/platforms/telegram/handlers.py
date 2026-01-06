@@ -58,14 +58,34 @@ def get_extractor_registry() -> ExtractorRegistry:
 
 def escape_markdown(text: str) -> str:
     """Escape Markdown special characters for Telegram."""
-    escape_chars = ['_', '*', '[', ']', '(', ')', '~', '`', '>', '#', '+', '-', '=', '|', '{', '}', '.', '!']
+    escape_chars = [
+        "_",
+        "*",
+        "[",
+        "]",
+        "(",
+        ")",
+        "~",
+        "`",
+        ">",
+        "#",
+        "+",
+        "-",
+        "=",
+        "|",
+        "{",
+        "}",
+        ".",
+        "!",
+    ]
     for char in escape_chars:
-        text = text.replace(char, f'\\{char}')
+        text = text.replace(char, f"\\{char}")
     return text
 
 
 # ============ Session Management ============
 # 会话管理：存储和获取用户的对话上下文
+
 
 def get_session(context: ContextTypes.DEFAULT_TYPE) -> Optional[dict]:
     """
@@ -74,7 +94,7 @@ def get_session(context: ContextTypes.DEFAULT_TYPE) -> Optional[dict]:
     context.user_data 是 Telegram 框架提供的字典，
     按 user_id 自动隔离，每个用户有独立的存储空间。
     """
-    return context.user_data.get('session')
+    return context.user_data.get("session")
 
 
 def set_session(context: ContextTypes.DEFAULT_TYPE, session: dict):
@@ -89,20 +109,21 @@ def set_session(context: ContextTypes.DEFAULT_TYPE, session: dict):
     - summary: AI 总结
     - messages: 对话历史数组
     """
-    context.user_data['session'] = session
+    context.user_data["session"] = session
 
 
 def clear_session(context: ContextTypes.DEFAULT_TYPE):
     """清除当前用户的会话数据。"""
-    context.user_data.pop('session', None)
+    context.user_data.pop("session", None)
 
 
 def has_active_session(context: ContextTypes.DEFAULT_TYPE) -> bool:
     """检查用户是否有活跃的会话。"""
-    return 'session' in context.user_data
+    return "session" in context.user_data
 
 
 # ============ Command Handlers ============
+
 
 async def start_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /start command."""
@@ -162,15 +183,14 @@ async def save_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if not session:
         await update.message.reply_text(
-            "❌ 没有可保存的内容\n\n"
-            "先发送一个链接，我总结后你就可以保存了。"
+            "❌ 没有可保存的内容\n\n" "先发送一个链接，我总结后你就可以保存了。"
         )
         return
 
     # 检查是否有自定义标题
     text = update.message.text or ""
     custom_title = text.replace("/save", "").strip()
-    title = custom_title if custom_title else session.get('title', 'Untitled')
+    title = custom_title if custom_title else session.get("title", "Untitled")
 
     processing_msg = await update.message.reply_text("💾 正在保存...")
 
@@ -182,7 +202,7 @@ async def save_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         storage = get_storage()
 
         # 生成文件名（去除特殊字符）
-        safe_title = re.sub(r'[<>:"/\\|?*]', '', title)[:50]
+        safe_title = re.sub(r'[<>:"/\\|?*]', "", title)[:50]
         date_str = datetime.now().strftime("%Y%m%d")
         filename = f"{date_str}-{safe_title}.md"
 
@@ -218,7 +238,7 @@ async def status_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("📭 当前没有活跃的会话\n\n发送链接开始。")
         return
 
-    msg_count = len(session.get('messages', [])) - 1  # 减去 system message
+    msg_count = len(session.get("messages", [])) - 1  # 减去 system message
     await update.message.reply_text(
         f"📊 当前会话状态\n\n"
         f"📌 标题：{session.get('title', 'Unknown')}\n"
@@ -229,6 +249,7 @@ async def status_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 # ============ Message Handlers ============
+
 
 async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
@@ -260,8 +281,7 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         # 无会话，无链接 → 提示
         await update.message.reply_text(
-            "💡 发送链接即可提取内容\n\n"
-            "支持：YouTube、微信公众号、网页文章"
+            "💡 发送链接即可提取内容\n\n" "支持：YouTube、微信公众号、网页文章"
         )
 
 
@@ -292,8 +312,7 @@ async def handle_url_message(
 
         if extractor is None:
             await processing_msg.edit_text(
-                "❌ 暂不支持该类型的链接\n\n"
-                "目前支持：YouTube、微信公众号、网页文章"
+                "❌ 暂不支持该类型的链接\n\n" "目前支持：YouTube、微信公众号、网页文章"
             )
             return
 
@@ -308,16 +327,16 @@ async def handle_url_message(
         # 创建会话上下文
         # 这是关键：保存内容和对话历史，用于后续追问
         session = {
-            'title': result.title,
-            'source_url': url,
-            'source_type': result.source_type.value,
-            'content': result.content[:8000],  # 截断，避免太长
-            'summary': summary,
-            'messages': [
+            "title": result.title,
+            "source_url": url,
+            "source_type": result.source_type.value,
+            "content": result.content[:8000],  # 截断，避免太长
+            "summary": summary,
+            "messages": [
                 # System prompt：告诉 AI 它的角色和上下文
                 {
-                    'role': 'system',
-                    'content': f"""你是一个内容分析助手。用户刚刚阅读了以下内容的总结，现在可能会有追问。
+                    "role": "system",
+                    "content": f"""你是一个内容分析助手。用户刚刚阅读了以下内容的总结，现在可能会有追问。
 
 内容标题：{result.title}
 内容类型：{result.source_type.value}
@@ -327,11 +346,11 @@ async def handle_url_message(
 原始内容（部分）：
 {result.content[:4000]}
 
-请基于以上内容回答用户的问题。如果问题超出内容范围，请如实说明。用中文回答。"""
+请基于以上内容回答用户的问题。如果问题超出内容范围，请如实说明。用中文回答。""",
                 },
                 # 第一条 assistant 消息：总结
-                {'role': 'assistant', 'content': summary}
-            ]
+                {"role": "assistant", "content": summary},
+            ],
         }
         set_session(context, session)
 
@@ -382,35 +401,24 @@ async def handle_followup(
 
     try:
         # 添加用户问题到对话历史
-        session['messages'].append({
-            'role': 'user',
-            'content': text
-        })
+        session["messages"].append({"role": "user", "content": text})
 
         # 调用 LLM（带完整对话历史）
         llm = get_llm()
 
         # 转换为 Message 对象
-        messages = [
-            Message(role=m['role'], content=m['content'])
-            for m in session['messages']
-        ]
+        messages = [Message(role=m["role"], content=m["content"]) for m in session["messages"]]
 
         response = await llm.chat(messages, temperature=0.7)
         answer = response.content
 
         # 保存 AI 回复到历史
-        session['messages'].append({
-            'role': 'assistant',
-            'content': answer
-        })
+        session["messages"].append({"role": "assistant", "content": answer})
         set_session(context, session)
 
         # 返回回答
         await processing_msg.edit_text(
-            f"{answer}\n\n"
-            f"———\n"
-            f"💬 继续提问 | /save 保存 | /clear 清除"
+            f"{answer}\n\n" f"———\n" f"💬 继续提问 | /save 保存 | /clear 清除"
         )
 
     except Exception as e:
@@ -420,18 +428,12 @@ async def handle_followup(
 
 async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle document upload (PDF, etc.)."""
-    await update.message.reply_text(
-        "📑 文档处理功能开发中...\n\n"
-        "目前支持：YouTube、网页文章"
-    )
+    await update.message.reply_text("📑 文档处理功能开发中...\n\n" "目前支持：YouTube、网页文章")
 
 
 async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle photo upload."""
-    await update.message.reply_text(
-        "🖼️ 图片识别功能开发中...\n\n"
-        "目前支持：YouTube、网页文章"
-    )
+    await update.message.reply_text("🖼️ 图片识别功能开发中...\n\n" "目前支持：YouTube、网页文章")
 
 
 async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -442,6 +444,7 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 # ============ Helper Functions ============
+
 
 def extract_urls(text: str) -> list[str]:
     """Extract URLs from text."""
@@ -480,7 +483,7 @@ def format_session_for_save(session: dict, title: str) -> str:
     ...
     """
     date_str = datetime.now().strftime("%Y-%m-%d %H:%M")
-    source_type = session.get('source_type', 'unknown')
+    source_type = session.get("source_type", "unknown")
 
     # YAML frontmatter
     content = f"""---
@@ -502,15 +505,15 @@ tags: [engram, {source_type}]
 """
 
     # 添加对话记录（如果有追问）
-    messages = session.get('messages', [])
+    messages = session.get("messages", [])
     conversation = []
 
     for msg in messages:
-        if msg['role'] == 'system':
+        if msg["role"] == "system":
             continue  # 跳过 system prompt
-        elif msg['role'] == 'user':
+        elif msg["role"] == "user":
             conversation.append(f"**Q:** {msg['content']}")
-        elif msg['role'] == 'assistant' and len(conversation) > 0:
+        elif msg["role"] == "assistant" and len(conversation) > 0:
             # 跳过第一条（就是总结本身）
             conversation.append(f"**A:** {msg['content']}\n")
 

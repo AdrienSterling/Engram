@@ -79,8 +79,18 @@ class ObsidianStorage(BaseStorage):
             commands = [
                 ["git", "-C", vault, "pull", "--rebase"],
                 ["git", "-C", vault, "add", str(rel_path)],
-                ["git", "-C", vault, "-c", f"user.name={self.git_user_name}",
-                 "-c", f"user.email={self.git_user_email}", "commit", "-m", message],
+                [
+                    "git",
+                    "-C",
+                    vault,
+                    "-c",
+                    f"user.name={self.git_user_name}",
+                    "-c",
+                    f"user.email={self.git_user_email}",
+                    "commit",
+                    "-m",
+                    message,
+                ],
                 ["git", "-C", vault, "push"],
             ]
 
@@ -117,11 +127,7 @@ class ObsidianStorage(BaseStorage):
         file_path = self.ideas_path / "1-种子" / f"{idea.title}.md"
         content = self.formatter.format_idea(idea)
 
-        await self._write_file(
-            file_path,
-            content,
-            f"Engram: 创建灵感 {idea.title}"
-        )
+        await self._write_file(file_path, content, f"Engram: 创建灵感 {idea.title}")
 
         return str(file_path)
 
@@ -145,11 +151,13 @@ class ObsidianStorage(BaseStorage):
             for file_path in search_path.glob("*.md"):
                 # Simple parsing - just get title from filename
                 title = file_path.stem
-                ideas.append(Idea(
-                    title=title,
-                    summary="",
-                    id=str(file_path),
-                ))
+                ideas.append(
+                    Idea(
+                        title=title,
+                        summary="",
+                        id=str(file_path),
+                    )
+                )
 
         return ideas
 
@@ -169,11 +177,7 @@ class ObsidianStorage(BaseStorage):
 
         content = self.formatter.format_material(material)
 
-        await self._write_file(
-            file_path,
-            content,
-            f"Engram: 添加材料到 {idea_path.stem}"
-        )
+        await self._write_file(file_path, content, f"Engram: 添加材料到 {idea_path.stem}")
 
         return str(file_path)
 
@@ -188,11 +192,7 @@ class ObsidianStorage(BaseStorage):
         file_path = area_dir / f"_{area.title}.md"
         content = self.formatter.format_knowledge_area(area)
 
-        await self._write_file(
-            file_path,
-            content,
-            f"Engram: 创建知识领域 {area.title}"
-        )
+        await self._write_file(file_path, content, f"Engram: 创建知识领域 {area.title}")
 
         # Create materials subdirectory
         (area_dir / "materials").mkdir(exist_ok=True)
@@ -213,17 +213,17 @@ class ObsidianStorage(BaseStorage):
             # Look for main file
             main_file = area_dir / f"_{area_dir.name}.md"
             if main_file.exists():
-                areas.append(KnowledgeArea(
-                    title=area_dir.name,
-                    output_commitment="",  # TODO: Parse from file
-                    id=str(main_file),
-                ))
+                areas.append(
+                    KnowledgeArea(
+                        title=area_dir.name,
+                        output_commitment="",  # TODO: Parse from file
+                        id=str(main_file),
+                    )
+                )
 
         return areas
 
-    async def add_material_to_knowledge(
-        self, area_id: str, material: Material
-    ) -> str:
+    async def add_material_to_knowledge(self, area_id: str, material: Material) -> str:
         """Add material to a knowledge area."""
         area_path = Path(area_id)
         area_dir = area_path.parent
@@ -238,17 +238,11 @@ class ObsidianStorage(BaseStorage):
 
         content = self.formatter.format_material(material)
 
-        await self._write_file(
-            file_path,
-            content,
-            f"Engram: 添加材料到知识领域 {area_dir.name}"
-        )
+        await self._write_file(file_path, content, f"Engram: 添加材料到知识领域 {area_dir.name}")
 
         return str(file_path)
 
-    async def update_material_status(
-        self, material_id: str, status: str
-    ) -> bool:
+    async def update_material_status(self, material_id: str, status: str) -> bool:
         """Update material digest status."""
         # TODO: Implement status update
         return True
@@ -269,11 +263,7 @@ class ObsidianStorage(BaseStorage):
         new_content = self.formatter.format_inbox_item(item)
         content = existing + "\n" + new_content
 
-        await self._write_file(
-            inbox_file,
-            content,
-            "Engram: 添加到临时收集箱"
-        )
+        await self._write_file(inbox_file, content, "Engram: 添加到临时收集箱")
 
         return str(inbox_file)
 
@@ -290,11 +280,7 @@ class ObsidianStorage(BaseStorage):
         """
         file_path = self.inbox_path / filename
 
-        await self._write_file(
-            file_path,
-            content,
-            f"Engram: 保存笔记 {filename}"
-        )
+        await self._write_file(file_path, content, f"Engram: 保存笔记 {filename}")
 
         return str(file_path)
 

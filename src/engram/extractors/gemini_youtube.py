@@ -78,11 +78,9 @@ class GeminiYouTubeAnalyzer:
                 response = client.models.generate_content(
                     model=self.model,
                     contents=[
-                        types.Part(
-                            file_data=types.FileData(file_uri=video_url)
-                        ),
+                        types.Part(file_data=types.FileData(file_uri=video_url)),
                         types.Part(text=prompt),
-                    ]
+                    ],
                 )
                 return response.text
 

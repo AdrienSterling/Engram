@@ -48,8 +48,7 @@ class StorageFactory:
         if backend_type not in cls._backends:
             available = list(cls._backends.keys())
             raise ConfigError(
-                f"Unknown storage backend: {backend_type}. "
-                f"Available: {available}"
+                f"Unknown storage backend: {backend_type}. " f"Available: {available}"
             )
 
         settings = settings or get_settings()
