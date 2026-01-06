@@ -130,13 +130,16 @@ jobs:
             # 登录 GitHub Container Registry
             echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-            # 拉取最新镜像并启动
-            docker-compose pull
-            docker-compose up -d
+            # 停止旧容器并删除
+            docker compose down --remove-orphans 2>/dev/null || docker-compose down --remove-orphans 2>/dev/null || true
+
+            # 拉取最新镜像并启动 (使用 docker compose V2)
+            docker compose pull || docker-compose pull
+            docker compose up -d || docker-compose up -d
 
             # 清理旧镜像
             docker image prune -f
 
             # 显示状态
-            docker-compose ps
-            docker-compose logs --tail=20
+            docker compose ps || docker-compose ps
+            docker compose logs --tail=20 || docker-compose logs --tail=20
