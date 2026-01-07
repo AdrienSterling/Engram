@@ -44,7 +44,14 @@ ENV PYTHONDONTWRITEBYTECODE=1
 
 # Create non-root user for security
 RUN useradd --create-home --shell /bin/bash engram
+
+# Configure git safe directory for mounted volumes
+RUN git config --global --add safe.directory /vault
+
 USER engram
+
+# Also configure for the engram user
+RUN git config --global --add safe.directory /vault
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \

@@ -7,7 +7,8 @@
       "Bash(gh run list:*)",
       "Bash(pip install:*)",
       "Bash(black:*)",
-      "Bash(python -m black:*)"
+      "Bash(python -m black:*)",
+      "Bash(ssh:*)"
     ]
   }
 }
