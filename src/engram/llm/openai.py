@@ -5,8 +5,9 @@ from typing import Optional
 
 from openai import AsyncOpenAI
 
-from engram.core.types import Message, LLMResponse
 from engram.core.exceptions import LLMError
+from engram.core.types import LLMResponse, Message
+
 from .base import BaseLLM
 
 logger = logging.getLogger(__name__)

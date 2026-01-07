@@ -1,8 +1,6 @@
 """Pytest configuration and fixtures."""
 
-import os
 import pytest
-from pathlib import Path
 
 
 @pytest.fixture

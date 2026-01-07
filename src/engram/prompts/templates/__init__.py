@@ -7,9 +7,6 @@ Organized by task type:
 - classify: Content classification
 """
 
-from typing import Optional
-
-
 # Default summarization prompt
 SUMMARIZE_DEFAULT = """你是一个内容总结助手。请总结以下内容的要点。
 

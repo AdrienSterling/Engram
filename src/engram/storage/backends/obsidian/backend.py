@@ -1,15 +1,13 @@
 """Obsidian storage backend implementation."""
 
-import os
-import subprocess
 import logging
-from datetime import datetime, timedelta
-from typing import Optional
+import subprocess
 from pathlib import Path
 
-from engram.core.types import Material, Idea, KnowledgeArea, InboxItem, DigestStatus
 from engram.core.exceptions import StorageError
+from engram.core.types import Idea, InboxItem, KnowledgeArea, Material
 from engram.storage.base import BaseStorage
+
 from .formatter import ObsidianFormatter
 
 logger = logging.getLogger(__name__)

@@ -6,18 +6,19 @@ References:
 - API changed in v1.2: uses instance-based approach
 """
 
-import re
 import logging
+import re
 from typing import Optional
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import parse_qs, urlparse
 
 from youtube_transcript_api import YouTubeTranscriptApi
 
-from engram.core.types import SourceType
 from engram.core.exceptions import ExtractorError
+from engram.core.types import SourceType
+
 from .base import BaseExtractor, ExtractionResult
-from .transcriber import get_transcriber
 from .gemini_youtube import get_gemini_analyzer
+from .transcriber import get_transcriber
 
 logger = logging.getLogger(__name__)
 

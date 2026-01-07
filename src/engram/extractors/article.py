@@ -4,16 +4,17 @@ Web article content extractor.
 Supports general web articles including WeChat (微信公众号) articles.
 """
 
-import re
 import logging
+import re
 from typing import Optional
 from urllib.parse import urlparse
 
 import aiohttp
 from bs4 import BeautifulSoup
 
-from engram.core.types import SourceType
 from engram.core.exceptions import ExtractorError
+from engram.core.types import SourceType
+
 from .base import BaseExtractor, ExtractionResult
 
 logger = logging.getLogger(__name__)

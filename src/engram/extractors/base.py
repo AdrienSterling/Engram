@@ -2,8 +2,8 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Optional
 from datetime import datetime
+from typing import Optional
 
 from engram.core.types import SourceType
 

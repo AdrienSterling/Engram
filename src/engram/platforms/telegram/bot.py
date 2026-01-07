@@ -5,8 +5,8 @@ Usage:
     python -m engram.platforms.telegram.bot
 """
 
-import logging
 import asyncio
+import logging
 
 from telegram import Update
 from telegram.ext import (
@@ -14,19 +14,19 @@ from telegram.ext import (
     CommandHandler,
     MessageHandler,
     filters,
-    ContextTypes,
 )
 
 from engram.core.config import get_settings
 from engram.core.logging import setup_logging
+
 from .handlers import (
-    start_handler,
-    help_handler,
-    save_handler,
     clear_handler,
-    status_handler,
-    message_handler,
     error_handler,
+    help_handler,
+    message_handler,
+    save_handler,
+    start_handler,
+    status_handler,
 )
 
 logger = logging.getLogger(__name__)

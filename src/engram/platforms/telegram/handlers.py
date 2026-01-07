@@ -37,10 +37,10 @@ from typing import Optional
 from telegram import Update
 from telegram.ext import ContextTypes
 
+from engram.core.types import Message
 from engram.extractors import ExtractorRegistry
 from engram.llm import get_llm
 from engram.storage import get_storage
-from engram.core.types import Message
 
 logger = logging.getLogger(__name__)
 
@@ -207,7 +207,7 @@ async def save_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         filename = f"{date_str}-{safe_title}.md"
 
         # 保存到 Inbox 文件夹
-        filepath = await storage.save_to_inbox(filename, content)
+        await storage.save_to_inbox(filename, content)
 
         await processing_msg.edit_text(
             f"✅ 已保存到 Obsidian\n\n"

@@ -1,9 +1,9 @@
 """Content extractors for various sources."""
 
-from .base import BaseExtractor, ExtractionResult
-from .youtube import YouTubeExtractor
 from .article import ArticleExtractor
+from .base import BaseExtractor, ExtractionResult
 from .registry import ExtractorRegistry, get_extractor
+from .youtube import YouTubeExtractor
 
 __all__ = [
     "BaseExtractor",

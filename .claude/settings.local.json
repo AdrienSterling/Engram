@@ -9,7 +9,8 @@
       "Bash(black:*)",
       "Bash(python -m black:*)",
       "Bash(ssh:*)",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "Bash(python -m ruff check:*)"
     ]
   }
 }

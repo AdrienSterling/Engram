@@ -1,7 +1,8 @@
 """Markdown formatters for Obsidian."""
 
 from datetime import datetime
-from engram.core.types import Material, Idea, KnowledgeArea, InboxItem
+
+from engram.core.types import Idea, InboxItem, KnowledgeArea, Material
 
 
 class ObsidianFormatter:

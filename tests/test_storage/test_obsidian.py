@@ -1,10 +1,11 @@
 """Tests for Obsidian storage backend."""
 
-import pytest
 from pathlib import Path
 
-from engram.storage.backends.obsidian import ObsidianStorage
+import pytest
+
 from engram.core.types import Idea, KnowledgeArea, Material, SourceType
+from engram.storage.backends.obsidian import ObsidianStorage
 
 
 class TestObsidianStorage:

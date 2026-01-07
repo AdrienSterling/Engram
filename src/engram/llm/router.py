@@ -5,6 +5,7 @@ from typing import Optional
 
 from engram.core.config import Settings, get_settings
 from engram.core.exceptions import ConfigError
+
 from .base import BaseLLM
 from .openai import OpenAILLM
 
@@ -78,7 +79,7 @@ class LLMRouter:
                 provider = available[0]
                 logger.warning(f"Provider not available, falling back to {provider}")
             else:
-                raise ConfigError(f"No LLM provider available")
+                raise ConfigError("No LLM provider available")
 
         return self._providers[provider]
 

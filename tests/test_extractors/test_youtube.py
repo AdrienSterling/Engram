@@ -1,6 +1,7 @@
 """Tests for YouTube extractor."""
 
 import pytest
+
 from engram.extractors.youtube import YouTubeExtractor
 
 

@@ -5,8 +5,8 @@ Uses Google's Gemini API to directly analyze YouTube videos,
 bypassing download restrictions.
 """
 
-import logging
 import asyncio
+import logging
 from typing import Optional
 
 from engram.core.config import get_settings

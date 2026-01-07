@@ -1,7 +1,7 @@
 """Storage abstraction layer - supports multiple backends."""
 
-from .base import BaseStorage
 from .backends.obsidian import ObsidianStorage
+from .base import BaseStorage
 from .factory import StorageFactory, get_storage
 
 __all__ = [

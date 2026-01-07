@@ -5,8 +5,9 @@ from typing import Optional, Type
 
 from engram.core.config import Settings, get_settings
 from engram.core.exceptions import ConfigError
-from .base import BaseStorage
+
 from .backends.obsidian import ObsidianStorage
+from .base import BaseStorage
 
 logger = logging.getLogger(__name__)
 

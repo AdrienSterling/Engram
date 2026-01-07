@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 
-from engram.core.types import Message, LLMResponse
+from engram.core.types import LLMResponse, Message
 
 
 class BaseLLM(ABC):

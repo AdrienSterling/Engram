@@ -4,9 +4,10 @@ import logging
 from typing import Optional
 
 from engram.core.exceptions import ExtractorError
+
+from .article import ArticleExtractor
 from .base import BaseExtractor
 from .youtube import YouTubeExtractor
-from .article import ArticleExtractor
 
 logger = logging.getLogger(__name__)
 

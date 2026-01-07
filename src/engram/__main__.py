@@ -9,8 +9,8 @@ Commands:
     test      Run a quick test
 """
 
-import sys
 import asyncio
+import sys
 
 
 def main():

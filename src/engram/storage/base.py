@@ -1,9 +1,8 @@
 """Base storage interface - all backends implement this."""
 
 from abc import ABC, abstractmethod
-from typing import Optional
 
-from engram.core.types import Material, Idea, KnowledgeArea, InboxItem
+from engram.core.types import Idea, InboxItem, KnowledgeArea, Material
 
 
 class BaseStorage(ABC):
