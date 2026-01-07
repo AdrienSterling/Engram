@@ -95,16 +95,24 @@ class ObsidianStorage(BaseStorage):
             ]
 
             for cmd in commands:
+                logger.info(f"Running git command: {' '.join(cmd)}")
                 result = subprocess.run(
                     cmd,
                     capture_output=True,
                     text=True,
                 )
-                if result.returncode != 0 and "nothing to commit" not in result.stdout:
-                    logger.warning(f"Git command warning: {result.stderr}")
+                if result.returncode != 0:
+                    if "nothing to commit" not in result.stdout:
+                        logger.error(
+                            f"Git command failed: {' '.join(cmd)}\n"
+                            f"  stdout: {result.stdout}\n"
+                            f"  stderr: {result.stderr}"
+                        )
+                else:
+                    logger.info(f"Git command success: {result.stdout.strip()}")
 
         except Exception as e:
-            logger.error(f"Git sync error: {e}")
+            logger.error(f"Git sync error: {e}", exc_info=True)
             # Don't raise - git sync failure shouldn't block storage
 
     async def _write_file(self, path: Path, content: str, git_message: str):
