@@ -5,9 +5,7 @@ version: '3.8'
 
 services:
   engram:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ghcr.io/adriensterling/engram:latest
     container_name: engram-bot
     restart: unless-stopped
 
