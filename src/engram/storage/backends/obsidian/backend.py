@@ -77,7 +77,8 @@ class ObsidianStorage(BaseStorage):
 
             # Use list arguments instead of shell string for cross-platform compatibility
             commands = [
-                ["git", "-C", vault, "pull", "--rebase"],
+                # Use --autostash to handle uncommitted changes automatically
+                ["git", "-C", vault, "pull", "--rebase", "--autostash"],
                 ["git", "-C", vault, "add", str(rel_path)],
                 [
                     "git",
