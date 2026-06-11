@@ -366,6 +366,33 @@ async def llmtest_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await msg.edit_text(f"❌ 诊断失败: {str(e)}")
 
 
+async def full_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle /full command - 发送完整提取内容。"""
+    session = get_session(context)
+    if not session:
+        await update.message.reply_text("❌ 没有活跃的会话，先发个链接吧")
+        return
+
+    full_text = session.get("content_full", session.get("content", ""))
+    title = session.get("title", "content")
+
+    if not full_text.strip():
+        await update.message.reply_text("❌ 没有提取到内容")
+        return
+
+    safe_title = re.sub(r'[<>:"/\\|?*]', "", title)[:30]
+    filename = f"{safe_title}.txt"
+
+    if len(full_text) <= 4000:
+        await update.message.reply_text(f"📄 *{title}*\n\n{full_text}", parse_mode="Markdown")
+    else:
+        await update.message.reply_document(
+            document=full_text.encode("utf-8"),
+            filename=filename,
+            caption=f"📄 {title}（{len(full_text)} 字）",
+        )
+
+
 async def review_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle /review command - 开始知识复习。"""
     from engram.core.config import get_settings
@@ -584,6 +611,7 @@ async def handle_url_message(
             "source_url": url,
             "source_type": result.source_type.value,
             "content": result.content[:8000],
+            "content_full": result.content,
             "summary": summary,
             "messages": [
                 {
@@ -853,5 +881,10 @@ tags: [engram, {source_type}]
     if len(conversation) > 1:  # 有追问对话
         content += "## 对话记录\n\n"
         content += "\n".join(conversation[1:])  # 跳过第一个总结
+
+    # 保存完整内容
+    full_text = session.get("content_full", "")
+    if full_text:
+        content += f"\n\n## 完整内容\n\n{full_text}\n"
 
     return content
