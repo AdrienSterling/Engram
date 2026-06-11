@@ -58,6 +58,11 @@ class BilibiliExtractor(BaseExtractor):
             "writesubtitles": True,
             "writeautomaticsub": True,
             "subtitleslangs": ["zh-Hans", "zh", "en", "ai-zh", "ai-en"],
+            "http_headers": {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                "Referer": "https://www.bilibili.com/",
+                "Origin": "https://www.bilibili.com",
+            },
         }
 
         try:
@@ -150,6 +155,11 @@ class BilibiliExtractor(BaseExtractor):
             "writesubtitles": True,
             "writeautomaticsub": True,
             "subtitleslangs": ["zh-Hans", "zh", "en", "ai-zh", "ai-en"],
+            "http_headers": {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                "Referer": "https://www.bilibili.com/",
+                "Origin": "https://www.bilibili.com",
+            },
         }
 
         try:
