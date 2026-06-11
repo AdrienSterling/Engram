@@ -15,9 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 class OpenAILLM(BaseLLM):
-    """OpenAI GPT implementation."""
-
-    name = "openai"
+    """OpenAI-compatible LLM implementation (OpenAI, DeepSeek, etc.)."""
 
     MAX_CONTENT_LENGTH = 50000
 
@@ -26,15 +24,18 @@ class OpenAILLM(BaseLLM):
         api_key: str,
         model: str = "gpt-4",
         base_url: Optional[str] = None,
+        provider_name: str = "openai",
     ):
         """
-        Initialize OpenAI LLM.
+        Initialize LLM.
 
         Args:
-            api_key: OpenAI API key
-            model: Model name (gpt-4, gpt-3.5-turbo, etc.)
-            base_url: Optional custom base URL (for proxies)
+            api_key: API key
+            model: Model name
+            base_url: Optional custom base URL (for DeepSeek etc.)
+            provider_name: Display name for logging (openai, deepseek)
         """
+        self.name = provider_name
         self.model = model
         self.client = AsyncOpenAI(
             api_key=api_key,

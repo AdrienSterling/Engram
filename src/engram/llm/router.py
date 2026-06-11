@@ -45,6 +45,7 @@ class LLMRouter:
                 api_key=self.settings.deepseek_api_key,
                 model=self.settings.deepseek_model,
                 base_url=self.settings.deepseek_base_url,
+                provider_name="deepseek",
             )
             logger.info(f"Initialized DeepSeek with model {self.settings.deepseek_model}")
 
