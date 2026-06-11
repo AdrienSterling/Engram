@@ -10,6 +10,7 @@ class SourceType(Enum):
     """Content source types."""
 
     YOUTUBE = "youtube"
+    BILIBILI = "bilibili"
     ARTICLE = "article"
     PDF = "pdf"
     IMAGE = "image"

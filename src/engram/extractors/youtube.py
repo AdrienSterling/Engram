@@ -140,7 +140,8 @@ class YouTubeExtractor(BaseExtractor):
         if transcriber.is_available:
             logger.info("Falling back to Whisper transcription...")
             try:
-                full_text = await transcriber.transcribe_youtube(video_id)
+                full_url = f"https://www.youtube.com/watch?v={video_id}"
+                full_text = await transcriber.transcribe(full_url)
 
                 logger.info(f"Transcribed via Whisper: {len(full_text)} chars")
 
@@ -273,10 +274,7 @@ class YouTubeExtractor(BaseExtractor):
         """
         Get transcript with timestamps preserved.
 
-        Each segment formatted as: [hh:mm:ss] text
-
-        Returns:
-            Timestamped transcript string, or None if no subtitles available
+        Falls back to Whisper transcription with timestamps if no subtitles.
         """
         transcript = None
         try:
@@ -285,26 +283,34 @@ class YouTubeExtractor(BaseExtractor):
             try:
                 transcript = self._api.fetch(video_id)
             except Exception:
-                return None
+                pass
 
-        if transcript is None:
-            return None
+        if transcript is not None:
+            transcript_data = transcript.to_raw_data()
+            lines = []
+            for segment in transcript_data:
+                text = segment.get("text", "").strip()
+                if not text:
+                    continue
+                start_seconds = int(segment.get("start", 0))
+                hh = start_seconds // 3600
+                mm = (start_seconds % 3600) // 60
+                ss = start_seconds % 60
+                text = text.replace("\n", " ")
+                text = re.sub(r"\s+", " ", text)
+                lines.append(f"[{hh:02d}:{mm:02d}:{ss:02d}] {text}")
+            return "\n".join(lines)
 
-        transcript_data = transcript.to_raw_data()
-        lines = []
-        for segment in transcript_data:
-            text = segment.get("text", "").strip()
-            if not text:
-                continue
-            start_seconds = int(segment.get("start", 0))
-            hh = start_seconds // 3600
-            mm = (start_seconds % 3600) // 60
-            ss = start_seconds % 60
-            text = text.replace("\n", " ")
-            text = re.sub(r"\s+", " ", text)
-            lines.append(f"[{hh:02d}:{mm:02d}:{ss:02d}] {text}")
+        transcriber = get_transcriber()
+        if transcriber.is_available:
+            logger.info("No subtitles, falling back to Whisper with timestamps...")
+            try:
+                full_url = f"https://www.youtube.com/watch?v={video_id}"
+                return await transcriber.transcribe_with_timestamps(full_url)
+            except Exception as e:
+                logger.warning(f"Whisper timestamped transcription failed: {e}")
 
-        return "\n".join(lines)
+        return None
 
     async def _get_video_title(self, video_id: str) -> str:
         """

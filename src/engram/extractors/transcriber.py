@@ -1,7 +1,8 @@
 """
 Audio transcription service using Groq Whisper API.
 
-Handles downloading audio from YouTube and transcribing via Groq.
+Handles downloading audio from any video platform via yt-dlp
+and transcribing via Groq with optional timestamps.
 """
 
 import asyncio
@@ -21,17 +22,11 @@ logger = logging.getLogger(__name__)
 
 
 class AudioTranscriber:
-    """
-    Transcribe audio using Groq Whisper API.
+    """Transcribe audio using Groq Whisper API."""
 
-    Uses yt-dlp to download audio, then Groq for transcription.
-    """
-
-    # Groq file size limit (25MB for free tier)
     MAX_FILE_SIZE = 25 * 1024 * 1024
 
     def __init__(self):
-        """Initialize transcriber."""
         settings = get_settings()
         self.api_key = settings.groq_api_key
         self.model = settings.groq_whisper_model
@@ -41,126 +36,112 @@ class AudioTranscriber:
 
     @property
     def is_available(self) -> bool:
-        """Check if transcription is available."""
         return bool(self.api_key)
 
-    async def transcribe_youtube(self, video_id: str) -> Optional[str]:
-        """
-        Download and transcribe YouTube video audio.
-
-        Args:
-            video_id: YouTube video ID
-
-        Returns:
-            Transcription text or None if failed
-        """
+    async def transcribe(self, url: str) -> Optional[str]:
+        """Download audio from URL and transcribe to plain text."""
         if not self.is_available:
             raise ExtractorError("Groq API key not configured")
 
-        logger.info(f"Downloading audio for video: {video_id}")
-
-        # Download audio to temp file
-        audio_path = await self._download_audio(video_id)
-
+        audio_path = await self._download_audio(url)
         if not audio_path:
-            raise ExtractorError(f"Failed to download audio for video: {video_id}")
+            raise ExtractorError(f"Failed to download audio from: {url}")
 
         try:
-            # Check file size
             file_size = os.path.getsize(audio_path)
             logger.info(f"Audio file size: {file_size / 1024 / 1024:.1f} MB")
 
             if file_size > self.MAX_FILE_SIZE:
                 raise ExtractorError(
-                    f"Audio file too large ({file_size / 1024 / 1024:.1f} MB). "
-                    f"Max: {self.MAX_FILE_SIZE / 1024 / 1024} MB"
+                    f"Audio file too large ({file_size / 1024 / 1024:.1f} MB)"
                 )
 
-            # Transcribe
-            logger.info(f"Transcribing with Groq Whisper ({self.model})...")
             transcript = await self._transcribe_audio(audio_path)
-
             logger.info(f"Transcription complete: {len(transcript)} chars")
             return transcript
-
         finally:
-            # Clean up temp file and directory
-            if audio_path:
-                temp_dir = os.path.dirname(audio_path)
-                if os.path.exists(temp_dir):
-                    shutil.rmtree(temp_dir, ignore_errors=True)
-                    logger.debug(f"Cleaned up temp directory: {temp_dir}")
+            self._cleanup(audio_path)
 
-    async def _download_audio(self, video_id: str) -> Optional[str]:
-        """
-        Download audio from YouTube video using yt-dlp.
-
-        Args:
-            video_id: YouTube video ID
+    async def transcribe_with_timestamps(self, url: str) -> Optional[str]:
+        """Download audio from URL and return timestamped transcript.
 
         Returns:
-            Path to downloaded audio file
+            String format: "[00:01:23] text segment\n[00:02:45] next segment..."
+            Or None if failed.
         """
+        if not self.is_available:
+            return None
+
+        audio_path = await self._download_audio(url)
+        if not audio_path:
+            return None
+
+        try:
+            file_size = os.path.getsize(audio_path)
+            if file_size > self.MAX_FILE_SIZE:
+                logger.warning(f"Audio too large: {file_size / 1024 / 1024:.1f} MB")
+                return None
+
+            segments = await self._transcribe_verbose(audio_path)
+            if not segments:
+                return None
+
+            lines = []
+            for seg in segments:
+                text = seg.get("text", "").strip()
+                if not text:
+                    continue
+                start = int(seg.get("start", 0))
+                hh = start // 3600
+                mm = (start % 3600) // 60
+                ss = start % 60
+                lines.append(f"[{hh:02d}:{mm:02d}:{ss:02d}] {text}")
+
+            result = "\n".join(lines)
+            logger.info(f"Timestamped transcription: {len(lines)} segments, {len(result)} chars")
+            return result
+        finally:
+            self._cleanup(audio_path)
+
+    async def _download_audio(self, url: str) -> Optional[str]:
+        """Download audio from any URL using yt-dlp."""
         import yt_dlp
 
-        url = f"https://www.youtube.com/watch?v={video_id}"
-
-        # Create temp directory
         temp_dir = tempfile.mkdtemp()
         output_template = os.path.join(temp_dir, "audio.%(ext)s")
 
         ydl_opts = {
-            # Download smallest audio format (no ffmpeg needed)
             "format": "worstaudio[ext=m4a]/worstaudio[ext=webm]/worstaudio",
             "outtmpl": output_template,
             "quiet": True,
             "no_warnings": True,
             "extract_flat": False,
-            # Limit duration to avoid huge files (30 min max)
             "match_filter": yt_dlp.utils.match_filter_func("duration < 1800"),
-            # No postprocessors - skip ffmpeg requirement
-            # Use Android client to bypass bot detection
             "extractor_args": {"youtube": {"player_client": ["android"]}},
         }
 
         try:
-            # Run in thread pool to avoid blocking
             loop = asyncio.get_event_loop()
             await loop.run_in_executor(None, lambda: self._do_download(ydl_opts, url))
 
-            # Find the downloaded file
             for file in os.listdir(temp_dir):
                 if file.startswith("audio"):
                     return os.path.join(temp_dir, file)
-
             return None
-
         except Exception as e:
             logger.error(f"Failed to download audio: {e}")
-            # Clean up temp dir on failure
             shutil.rmtree(temp_dir, ignore_errors=True)
             return None
 
     def _do_download(self, opts: dict, url: str):
-        """Perform the actual download (sync)."""
         import yt_dlp
 
         with yt_dlp.YoutubeDL(opts) as ydl:
             ydl.download([url])
 
     async def _transcribe_audio(self, audio_path: str) -> str:
-        """
-        Transcribe audio file using Groq Whisper API.
-
-        Args:
-            audio_path: Path to audio file
-
-        Returns:
-            Transcription text
-        """
+        """Transcribe to plain text."""
         client = Groq(api_key=self.api_key)
-
-        # Run in thread pool (Groq SDK is sync)
         loop = asyncio.get_event_loop()
 
         def do_transcribe():
@@ -172,16 +153,39 @@ class AudioTranscriber:
                 )
                 return transcription
 
-        result = await loop.run_in_executor(None, do_transcribe)
-        return result
+        return await loop.run_in_executor(None, do_transcribe)
+
+    async def _transcribe_verbose(self, audio_path: str) -> list[dict]:
+        """Transcribe to verbose JSON with timestamped segments."""
+        client = Groq(api_key=self.api_key)
+        loop = asyncio.get_event_loop()
+
+        def do_transcribe():
+            with open(audio_path, "rb") as audio_file:
+                result = client.audio.transcriptions.create(
+                    file=(Path(audio_path).name, audio_file.read()),
+                    model=self.model,
+                    response_format="verbose_json",
+                )
+                return result.segments if hasattr(result, "segments") else []
+
+        try:
+            return await loop.run_in_executor(None, do_transcribe)
+        except Exception as e:
+            logger.warning(f"Verbose transcription failed: {e}")
+            return []
+
+    def _cleanup(self, audio_path: Optional[str]):
+        if audio_path:
+            temp_dir = os.path.dirname(audio_path)
+            if os.path.exists(temp_dir):
+                shutil.rmtree(temp_dir, ignore_errors=True)
 
 
-# Global instance
 _transcriber: Optional[AudioTranscriber] = None
 
 
 def get_transcriber() -> AudioTranscriber:
-    """Get global transcriber instance."""
     global _transcriber
     if _transcriber is None:
         _transcriber = AudioTranscriber()

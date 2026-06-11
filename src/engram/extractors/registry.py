@@ -7,6 +7,7 @@ from engram.core.exceptions import ExtractorError
 
 from .article import ArticleExtractor
 from .base import BaseExtractor
+from .bilibili import BilibiliExtractor
 from .youtube import YouTubeExtractor
 
 logger = logging.getLogger(__name__)
@@ -26,10 +27,9 @@ class ExtractorRegistry:
 
     def _register_defaults(self):
         """Register default extractors."""
-        # Order matters: more specific extractors first
         self.register(YouTubeExtractor())
+        self.register(BilibiliExtractor())
         self.register(ArticleExtractor())  # General web articles (WeChat, etc.)
-        # Future: PDFExtractor, ImageExtractor
 
     def register(self, extractor: BaseExtractor):
         """

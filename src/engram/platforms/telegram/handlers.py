@@ -42,7 +42,7 @@ from telegram import Update
 from telegram.ext import ContextTypes
 
 from engram.core.types import Message, SourceType
-from engram.extractors import ExtractorRegistry, YouTubeExtractor
+from engram.extractors import ExtractorRegistry, YouTubeExtractor, BilibiliExtractor
 from engram.extractors.screenshot import ScreenshotExtractor
 from engram.llm import get_llm
 from engram.llm.router import run_diagnostic
@@ -569,9 +569,9 @@ async def handle_url_message(
 
         llm = get_llm()
 
-        # YouTube: use enhanced summarization with screenshot markers
-        if result.source_type == SourceType.YOUTUBE and isinstance(extractor, YouTubeExtractor):
-            summary = await _summarize_youtube_enhanced(
+        # Video platforms: use enhanced summarization with screenshot markers
+        if result.source_type in (SourceType.YOUTUBE, SourceType.BILIBILI):
+            summary = await _summarize_video_enhanced(
                 update, processing_msg, extractor, url, result, instruction, llm
             )
         else:
@@ -608,6 +608,7 @@ async def handle_url_message(
         # 格式化响应
         source_emoji = {
             "youtube": "📺",
+            "bilibili": "📺",
             "article": "📄",
             "pdf": "📑",
             "image": "🖼️",
@@ -630,35 +631,32 @@ async def handle_url_message(
         await processing_msg.edit_text(f"❌ 处理失败\n\n错误：{str(e)}")
 
 
-async def _summarize_youtube_enhanced(
+async def _summarize_video_enhanced(
     update: Update,
     processing_msg,
-    extractor: YouTubeExtractor,
+    extractor,
     url: str,
     result,
     instruction: Optional[str],
     llm,
 ) -> str:
     """
-    Enhanced YouTube summarization with structured Markdown and screenshots.
+    Enhanced video summarization with structured Markdown and screenshots.
 
-    Flow:
-    1. Get timestamped transcript
-    2. LLM generates structured Markdown with Screenshot markers
-    3. Download video and extract frames at marked timestamps
-    4. Replace markers with image references
-    5. Send screenshots to Telegram
-    6. Save to vault assets
-
-    Falls back to normal summarization if any step fails.
+    Works for YouTube, Bilibili, and any extractor with get_timestamped_transcript().
     """
-    video_id = extractor._extract_video_id(url)
+    video_id = None
+    if isinstance(extractor, YouTubeExtractor):
+        video_id = extractor._extract_video_id(url)
+    elif isinstance(extractor, BilibiliExtractor):
+        video_id = extractor._extract_bvid(url)
+
     if not video_id:
         return await llm.summarize(result.content, instruction)
 
     timestamped = await extractor.get_timestamped_transcript(video_id)
     if not timestamped:
-        logger.info("No timestamped transcript available, using normal summary")
+        logger.info("No timestamped transcript, using normal summary")
         return await llm.summarize(result.content, instruction)
 
     await processing_msg.edit_text("🔄 正在生成结构化总结...")
