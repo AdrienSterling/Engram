@@ -148,3 +148,16 @@ jobs:
             # 显示状态
             docker-compose ps
             docker-compose logs --tail=20
+
+            # DeepSeek 连通性诊断
+            echo ""
+            echo "=== DeepSeek API Diagnostic ==="
+            DEEPSEEK_KEY="${{ secrets.DEEPSEEK_API_KEY }}"
+            echo "Testing connectivity..."
+            curl -sI --max-time 10 https://api.deepseek.com/v1/models 2>&1 || echo "❌ Connection failed"
+            echo ""
+            echo "Checking balance..."
+            curl -s --max-time 10 -H "Authorization: Bearer $DEEPSEEK_KEY" https://api.deepseek.com/user/balance 2>&1 || echo "❌ Balance check failed"
+            echo ""
+            echo "=== Bot container logs (runtime errors) ==="
+            docker logs engram-bot --tail 30 2>&1
