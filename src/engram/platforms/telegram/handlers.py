@@ -679,6 +679,8 @@ async def _summarize_youtube_enhanced(
 
     if not video_path:
         logger.warning("Video download failed, returning summary without screenshots")
+        screenshotter.cleanup()
+        shutil.rmtree(temp_dir, ignore_errors=True)
         return summary
 
     timestamps = [ts for _, ts in markers]
