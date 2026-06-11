@@ -120,7 +120,6 @@ class LLMRouter:
 
             if name == "deepseek":
                 try:
-                    key = mask_key(settings.deepseek_api_key or "")
                     api_url = "https://api.deepseek.com/user/balance"
                     async with aiohttp.ClientSession() as session:
                         async with session.get(
@@ -130,8 +129,11 @@ class LLMRouter:
                         ) as resp:
                             if resp.status == 200:
                                 data = await resp.json()
-                                balance = data.get("balance_infos", [{}])[0]
-                                lines.append(f"  💰 余额: {balance.get('total_balance', '?')} {balance.get('currency', '')}")
+                                for info in data.get("balance_infos", []):
+                                    bal = info.get("total_balance", "?")
+                                    cur = info.get("currency", "")
+                                    if bal and bal != "0.00":
+                                        lines.append(f"  💰 余额: {bal} {cur}")
                             else:
                                 text = await resp.text()
                                 lines.append(f"  💰 余额查询失败: HTTP {resp.status} {text[:100]}")
