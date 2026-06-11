@@ -24,6 +24,7 @@ from .handlers import (
     clear_handler,
     error_handler,
     help_handler,
+    llmtest_handler,
     message_handler,
     review_handler,
     save_handler,
@@ -55,6 +56,7 @@ def create_application() -> Application:
     application.add_handler(CommandHandler("status", status_handler))
     application.add_handler(CommandHandler("review", review_handler))
     application.add_handler(CommandHandler("skip", skip_handler))
+    application.add_handler(CommandHandler("llmtest", llmtest_handler))
 
     # Handle all text messages and URLs
     application.add_handler(

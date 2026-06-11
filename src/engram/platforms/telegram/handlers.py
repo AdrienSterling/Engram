@@ -45,6 +45,7 @@ from engram.core.types import Message, SourceType
 from engram.extractors import ExtractorRegistry, YouTubeExtractor
 from engram.extractors.screenshot import ScreenshotExtractor
 from engram.llm import get_llm
+from engram.llm.router import run_diagnostic
 from engram.skills.review.coach import ReviewCoach
 from engram.storage import get_storage
 
@@ -353,6 +354,16 @@ async def status_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"💬 对话轮数：{msg_count // 2}\n\n"
         f"可以继续提问，或 /save 保存，或 /clear 清除。"
     )
+
+
+async def llmtest_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle /llmtest command - 诊断 LLM 连接和余额。"""
+    msg = await update.message.reply_text("🔍 正在检测 LLM 连接...")
+    try:
+        report = await run_diagnostic()
+        await msg.edit_text(report)
+    except Exception as e:
+        await msg.edit_text(f"❌ 诊断失败: {str(e)}")
 
 
 async def review_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):

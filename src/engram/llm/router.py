@@ -3,6 +3,8 @@
 import logging
 from typing import Optional
 
+import aiohttp
+
 from engram.core.config import Settings, get_settings
 from engram.core.exceptions import ConfigError
 
@@ -94,6 +96,60 @@ class LLMRouter:
         """List available provider names."""
         return list(self._providers.keys())
 
+    async def diagnostic(self) -> str:
+        """Run diagnostic tests on all configured LLM providers."""
+        lines = ["🔍 LLM 诊断报告", ""]
+        settings = self.settings
+
+        for name, llm in self._providers.items():
+            provider = getattr(llm, "name", name)
+            model = getattr(llm, "model", "?")
+            base_url = str(getattr(llm.client, "base_url", "?"))
+            lines.append(f"*{provider}* ({model})")
+            lines.append(f"  URL: {base_url}")
+
+            try:
+                response = await llm.chat(
+                    [type("Message", (), {"role": "user", "content": "hi"})()],
+                    temperature=0,
+                    max_tokens=10,
+                )
+                lines.append(f"  ✅ 连接正常 (tokens: {response.usage.get('total_tokens', '?')})")
+            except Exception as e:
+                lines.append(f"  ❌ 连接失败: {str(e)[:200]}")
+
+            if name == "deepseek":
+                try:
+                    key = mask_key(settings.deepseek_api_key or "")
+                    api_url = "https://api.deepseek.com/user/balance"
+                    async with aiohttp.ClientSession() as session:
+                        async with session.get(
+                            api_url,
+                            headers={"Authorization": f"Bearer {settings.deepseek_api_key}"},
+                            timeout=aiohttp.ClientTimeout(total=10),
+                        ) as resp:
+                            if resp.status == 200:
+                                data = await resp.json()
+                                balance = data.get("balance_infos", [{}])[0]
+                                lines.append(f"  💰 余额: {balance.get('total_balance', '?')} {balance.get('currency', '')}")
+                            else:
+                                text = await resp.text()
+                                lines.append(f"  💰 余额查询失败: HTTP {resp.status} {text[:100]}")
+                except Exception as e:
+                    lines.append(f"  💰 余额查询异常: {str(e)[:100]}")
+
+            lines.append("")
+
+        lines.append(f"默认 LLM: {settings.default_llm}")
+        return "\n".join(lines)
+
+
+def mask_key(key: str) -> str:
+    """Mask API key for display."""
+    if len(key) <= 8:
+        return "***"
+    return key[:4] + "****" + key[-4:]
+
 
 # Global router instance
 _router: Optional[LLMRouter] = None
@@ -113,3 +169,11 @@ def get_llm(provider: Optional[str] = None) -> BaseLLM:
     if _router is None:
         _router = LLMRouter()
     return _router.get(provider)
+
+
+async def run_diagnostic() -> str:
+    """Run LLM diagnostic and return report string."""
+    global _router
+    if _router is None:
+        _router = LLMRouter()
+    return await _router.diagnostic()
