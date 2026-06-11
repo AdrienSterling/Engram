@@ -157,7 +157,9 @@ class BilibiliExtractor(BaseExtractor):
 
             def _extract():
                 with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                    return ydl.extract_info(f"https://www.bilibili.com/video/{bvid}", download=False)
+                    return ydl.extract_info(
+                        f"https://www.bilibili.com/video/{bvid}", download=False
+                    )
 
             info = await loop.run_in_executor(None, _extract)
         except Exception:

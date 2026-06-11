@@ -52,9 +52,7 @@ class AudioTranscriber:
             logger.info(f"Audio file size: {file_size / 1024 / 1024:.1f} MB")
 
             if file_size > self.MAX_FILE_SIZE:
-                raise ExtractorError(
-                    f"Audio file too large ({file_size / 1024 / 1024:.1f} MB)"
-                )
+                raise ExtractorError(f"Audio file too large ({file_size / 1024 / 1024:.1f} MB)")
 
             transcript = await self._transcribe_audio(audio_path)
             logger.info(f"Transcription complete: {len(transcript)} chars")
