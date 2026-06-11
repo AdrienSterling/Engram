@@ -84,3 +84,7 @@ Thumbs.db
 *.pem
 *.key
 credentials.json
+
+# Test output artifacts
+test_output.md
+test_output/

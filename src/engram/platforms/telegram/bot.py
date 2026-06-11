@@ -18,13 +18,16 @@ from telegram.ext import (
 
 from engram.core.config import get_settings
 from engram.core.logging import setup_logging
+from engram.scheduler import setup_scheduler, shutdown_scheduler
 
 from .handlers import (
     clear_handler,
     error_handler,
     help_handler,
     message_handler,
+    review_handler,
     save_handler,
+    skip_handler,
     start_handler,
     status_handler,
 )
@@ -50,6 +53,8 @@ def create_application() -> Application:
     application.add_handler(CommandHandler("save", save_handler))
     application.add_handler(CommandHandler("clear", clear_handler))
     application.add_handler(CommandHandler("status", status_handler))
+    application.add_handler(CommandHandler("review", review_handler))
+    application.add_handler(CommandHandler("skip", skip_handler))
 
     # Handle all text messages and URLs
     application.add_handler(
@@ -93,6 +98,9 @@ async def run_bot():
 
     application = create_application()
 
+    # Start APScheduler for daily review
+    setup_scheduler(application)
+
     # Start polling
     await application.initialize()
     await application.start()
@@ -110,6 +118,7 @@ async def run_bot():
     except (KeyboardInterrupt, SystemExit):
         logger.info("Shutting down...")
     finally:
+        shutdown_scheduler()
         await application.updater.stop()
         await application.stop()
         await application.shutdown()

@@ -114,7 +114,10 @@ jobs:
             TELEGRAM_TOKEN=${{ secrets.TELEGRAM_TOKEN }}
             VAULT_PATH=/opt/app/obsidian-vault
             OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+            OPENAI_MODEL=${{ secrets.OPENAI_MODEL }}
             DEEPSEEK_API_KEY=${{ secrets.DEEPSEEK_API_KEY }}
+            DEEPSEEK_MODEL=${{ secrets.DEEPSEEK_MODEL }}
+            DEEPSEEK_BASE_URL=${{ secrets.DEEPSEEK_BASE_URL }}
             GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}
             GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
             DEFAULT_LLM=${{ secrets.DEFAULT_LLM }}

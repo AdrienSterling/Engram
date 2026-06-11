@@ -180,3 +180,19 @@ class BaseStorage(ABC):
         """
         # Default implementation - can be overridden
         return []
+
+    # ============ Assets ============
+
+    async def save_asset(self, src_path: str, dest_name: str, subdir: str = "assets") -> str:
+        """
+        Save an asset file (image, etc.) to storage.
+
+        Args:
+            src_path: Path to source file
+            dest_name: Destination filename
+            subdir: Subdirectory within vault for assets
+
+        Returns:
+            Path to saved asset
+        """
+        raise NotImplementedError(f"{self.name} does not support asset storage")

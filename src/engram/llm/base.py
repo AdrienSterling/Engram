@@ -54,6 +54,23 @@ class BaseLLM(ABC):
         """
         pass
 
+    async def summarize_youtube(
+        self,
+        timestamped_content: str,
+        instruction: Optional[str] = None,
+    ) -> str:
+        """
+        Summarize YouTube video with structured Markdown and screenshot markers.
+
+        Args:
+            timestamped_content: Timestamped transcript (each line: [hh:mm:ss] text)
+            instruction: Optional custom instruction
+
+        Returns:
+            Structured Markdown with Screenshot-[hh:mm:ss] markers
+        """
+        return await self.summarize(timestamped_content, instruction)
+
     async def vision(
         self,
         image_url: str,

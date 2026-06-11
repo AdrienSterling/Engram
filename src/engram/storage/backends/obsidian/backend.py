@@ -1,6 +1,7 @@
 """Obsidian storage backend implementation."""
 
 import logging
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -290,6 +291,30 @@ class ObsidianStorage(BaseStorage):
         await self._write_file(file_path, content, f"Engram: 保存笔记 {filename}")
 
         return str(file_path)
+
+    async def save_asset(self, src_path: str, dest_name: str, subdir: str = "assets") -> str:
+        """
+        Copy an asset file into the vault's assets directory.
+
+        Args:
+            src_path: Source file path to copy from
+            dest_name: Destination filename
+            subdir: Subdirectory name within vault
+
+        Returns:
+            Destination path within vault
+        """
+        dest_dir = self.vault_path / subdir
+        dest_dir.mkdir(parents=True, exist_ok=True)
+
+        dest_path = dest_dir / dest_name
+        shutil.copy2(src_path, dest_path)
+
+        logger.info(f"Saved asset: {dest_path}")
+
+        await self._git_sync(dest_path, f"Engram: 保存截图 {dest_name}")
+
+        return str(dest_path)
 
     async def list_inbox(self, include_expired: bool = False) -> list[InboxItem]:
         """List inbox items."""

@@ -7,6 +7,7 @@ from openai import AsyncOpenAI
 
 from engram.core.exceptions import LLMError
 from engram.core.types import LLMResponse, Message
+from engram.prompts.templates import SUMMARIZE_YOUTUBE_ENHANCED
 
 from .base import BaseLLM
 
@@ -17,6 +18,8 @@ class OpenAILLM(BaseLLM):
     """OpenAI GPT implementation."""
 
     name = "openai"
+
+    MAX_CONTENT_LENGTH = 50000
 
     def __init__(
         self,
@@ -68,8 +71,8 @@ class OpenAILLM(BaseLLM):
             )
 
         except Exception as e:
-            logger.error(f"OpenAI chat error: {e}")
-            raise LLMError(f"OpenAI request failed: {e}") from e
+            logger.error(f"LLM chat error [{self.name}/{self.model}]: {e}")
+            raise LLMError(f"LLM request failed ({self.name}/{self.model}): {e}") from e
 
     async def summarize(
         self,
@@ -94,10 +97,41 @@ class OpenAILLM(BaseLLM):
 
         messages = [
             Message(role="system", content=system_prompt),
-            Message(role="user", content=content),
+            Message(role="user", content=content[:self.MAX_CONTENT_LENGTH]),
         ]
 
         response = await self.chat(messages, temperature=0.3)
+        return response.content
+
+    async def summarize_youtube(
+        self,
+        timestamped_content: str,
+        instruction: Optional[str] = None,
+    ) -> str:
+        """Summarize YouTube video with structured Markdown and screenshot markers."""
+        system_prompt = SUMMARIZE_YOUTUBE_ENHANCED
+
+        if len(timestamped_content) > self.MAX_CONTENT_LENGTH:
+            logger.warning(
+                f"Truncating timestamped content ({len(timestamped_content)} -> {self.MAX_CONTENT_LENGTH} chars)"
+            )
+            timestamped_content = timestamped_content[:self.MAX_CONTENT_LENGTH]
+
+        if instruction:
+            user_message = f"""用户额外指令：{instruction}
+
+以下是要整理的字幕内容：
+
+{timestamped_content}"""
+        else:
+            user_message = f"以下是要整理的字幕内容：\n\n{timestamped_content}"
+
+        messages = [
+            Message(role="system", content=system_prompt),
+            Message(role="user", content=user_message),
+        ]
+
+        response = await self.chat(messages, temperature=0.3, max_tokens=4096)
         return response.content
 
     async def vision(

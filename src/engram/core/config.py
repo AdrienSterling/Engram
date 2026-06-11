@@ -51,6 +51,10 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     inbox_expiration_days: int = 7
 
+    # === Review Coach ===
+    review_hour: int = 21
+    review_minute: int = 0
+
     def get_available_llms(self) -> list[str]:
         """Return list of configured LLM providers."""
         available = []

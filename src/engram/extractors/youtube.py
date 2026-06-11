@@ -269,6 +269,43 @@ class YouTubeExtractor(BaseExtractor):
 
         return " ".join(texts)
 
+    async def get_timestamped_transcript(self, video_id: str) -> Optional[str]:
+        """
+        Get transcript with timestamps preserved.
+
+        Each segment formatted as: [hh:mm:ss] text
+
+        Returns:
+            Timestamped transcript string, or None if no subtitles available
+        """
+        transcript = None
+        try:
+            transcript = self._api.fetch(video_id, languages=self.PREFERRED_LANGUAGES)
+        except Exception:
+            try:
+                transcript = self._api.fetch(video_id)
+            except Exception:
+                return None
+
+        if transcript is None:
+            return None
+
+        transcript_data = transcript.to_raw_data()
+        lines = []
+        for segment in transcript_data:
+            text = segment.get("text", "").strip()
+            if not text:
+                continue
+            start_seconds = int(segment.get("start", 0))
+            hh = start_seconds // 3600
+            mm = (start_seconds % 3600) // 60
+            ss = start_seconds % 60
+            text = text.replace("\n", " ")
+            text = re.sub(r"\s+", " ", text)
+            lines.append(f"[{hh:02d}:{mm:02d}:{ss:02d}] {text}")
+
+        return "\n".join(lines)
+
     async def _get_video_title(self, video_id: str) -> str:
         """
         Get video title via YouTube oEmbed API.
