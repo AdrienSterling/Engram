@@ -16,9 +16,7 @@ from typing import Optional
 
 logger = logging.getLogger(__name__)
 
-SCREENSHOT_MARKER_PATTERN = re.compile(
-    r"Screenshot-\[(\d{2}):(\d{2}):(\d{2})\]"
-)
+SCREENSHOT_MARKER_PATTERN = re.compile(r"Screenshot-\[(\d{2}):(\d{2}):(\d{2})\]")
 
 
 class ScreenshotExtractor:
@@ -91,7 +89,9 @@ class ScreenshotExtractor:
             video_path = Path(filename)
             if video_path.exists():
                 self._video_path = video_path
-                logger.info(f"Downloaded video: {video_path} ({video_path.stat().st_size / 1024 / 1024:.1f}MB)")
+                logger.info(
+                    f"Downloaded video: {video_path} ({video_path.stat().st_size / 1024 / 1024:.1f}MB)"
+                )
                 return video_path
 
             possible = list(self.temp_dir.glob("*"))
@@ -129,13 +129,18 @@ class ScreenshotExtractor:
 
             cmd = [
                 "ffmpeg",
-                "-ss", str(ts),
-                "-i", str(video_path),
-                "-frames:v", "1",
-                "-q:v", "2",
+                "-ss",
+                str(ts),
+                "-i",
+                str(video_path),
+                "-frames:v",
+                "1",
+                "-q:v",
+                "2",
                 str(output_path),
                 "-y",
-                "-loglevel", "error",
+                "-loglevel",
+                "error",
             ]
 
             logger.info(f"Extracting frame at {mm:02d}:{ss:02d} ({ts}s) -> {output_path}")
@@ -146,9 +151,7 @@ class ScreenshotExtractor:
                     frame_map[ts] = output_path
                     logger.info(f"Screenshot saved: {output_path}")
                 else:
-                    logger.warning(
-                        f"ffmpeg failed for ts={ts}: {result.stderr[:200]}"
-                    )
+                    logger.warning(f"ffmpeg failed for ts={ts}: {result.stderr[:200]}")
             except subprocess.TimeoutExpired:
                 logger.warning(f"ffmpeg timeout at ts={ts}")
             except FileNotFoundError:
@@ -201,7 +204,7 @@ class ScreenshotExtractor:
         vault_assets_dir.mkdir(parents=True, exist_ok=True)
 
         new_map = {}
-        for ts, src_path in {**getattr(self, '_frame_map', {})}.items():
+        for ts, src_path in {**getattr(self, "_frame_map", {})}.items():
             dest_path = vault_assets_dir / src_path.name
             shutil.copy2(src_path, dest_path)
             new_map[ts] = dest_path

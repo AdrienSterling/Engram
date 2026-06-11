@@ -60,6 +60,7 @@ def _save_chat_id(chat_id: int):
     global _chat_id_file
     if _chat_id_file is None:
         from engram.core.config import get_settings
+
         vault = Path(get_settings().vault_path)
         _chat_id_file = vault / ".engram_chat_id"
     _chat_id_file.write_text(str(chat_id))
@@ -70,6 +71,7 @@ def _load_chat_id() -> Optional[int]:
     global _chat_id_file
     if _chat_id_file is None:
         from engram.core.config import get_settings
+
         vault = Path(get_settings().vault_path)
         _chat_id_file = vault / ".engram_chat_id"
     if _chat_id_file.exists():
@@ -310,11 +312,13 @@ async def skip_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     questions = session["questions"]
     current_q = session["current_q"]
 
-    session["answers"].append({
-        "question": questions[current_q]["question"],
-        "user_answer": "（跳过）",
-        "feedback": "⏭ 已跳过",
-    })
+    session["answers"].append(
+        {
+            "question": questions[current_q]["question"],
+            "user_answer": "（跳过）",
+            "feedback": "⏭ 已跳过",
+        }
+    )
 
     session["current_q"] += 1
 
@@ -369,9 +373,7 @@ async def review_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     item = due_items[0]
-    questions = await coach.generate_questions(
-        item["title"], item["summary"], item["review_count"]
-    )
+    questions = await coach.generate_questions(item["title"], item["summary"], item["review_count"])
 
     if not questions:
         await update.message.reply_text("❌ 生成复习题失败，请稍后再试")
@@ -398,9 +400,7 @@ async def review_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-async def handle_review_answer(
-    update: Update, context: ContextTypes.DEFAULT_TYPE, text: str
-):
+async def handle_review_answer(update: Update, context: ContextTypes.DEFAULT_TYPE, text: str):
     """Handle user's answer during review session."""
     session = get_review_session(context)
     if not session:
@@ -422,15 +422,15 @@ async def handle_review_answer(
     processing_msg = await update.message.reply_text("🤔 评估中...")
 
     try:
-        feedback = await coach.evaluate_answer(
-            q["question"], q.get("answer", ""), text
-        )
+        feedback = await coach.evaluate_answer(q["question"], q.get("answer", ""), text)
 
-        session["answers"].append({
-            "question": q["question"],
-            "user_answer": text,
-            "feedback": feedback,
-        })
+        session["answers"].append(
+            {
+                "question": q["question"],
+                "user_answer": text,
+                "feedback": feedback,
+            }
+        )
 
         session["current_q"] += 1
         next_q = session["current_q"]
@@ -463,15 +463,11 @@ async def _finish_review(update, processing_msg, context, session, coach):
     )
 
     try:
-        review_summary = await coach.generate_review_summary(
-            session["title"], qa_text
-        )
+        review_summary = await coach.generate_review_summary(session["title"], qa_text)
     except Exception:
         review_summary = "复习完成！"
 
-    coach.advance_review_state(
-        session["filepath"], session["review_count"]
-    )
+    coach.advance_review_state(session["filepath"], session["review_count"])
 
     new_count = session["review_count"] + 1
     await processing_msg.edit_text(
@@ -661,9 +657,7 @@ async def _summarize_youtube_enhanced(
     if not markers:
         return summary
 
-    await processing_msg.edit_text(
-        f"🔄 正在下载视频并截取 {len(markers)} 张关键帧..."
-    )
+    await processing_msg.edit_text(f"🔄 正在下载视频并截取 {len(markers)} 张关键帧...")
 
     temp_dir = Path(tempfile.mkdtemp(prefix="engram_"))
     assets_dir = temp_dir / "assets"

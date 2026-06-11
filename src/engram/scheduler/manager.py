@@ -45,8 +45,7 @@ async def _send_daily_review(application: Application):
     logger.info(f"Daily review: {len(due_items)} items due")
 
     titles = "\n".join(
-        f"  • {item['title']}（第 {item['review_count'] + 1} 次）"
-        for item in due_items[:5]
+        f"  • {item['title']}（第 {item['review_count'] + 1} 次）" for item in due_items[:5]
     )
 
     more = f"\n  ...还有 {len(due_items) - 5} 条" if len(due_items) > 5 else ""

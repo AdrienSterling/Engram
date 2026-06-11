@@ -97,7 +97,7 @@ class OpenAILLM(BaseLLM):
 
         messages = [
             Message(role="system", content=system_prompt),
-            Message(role="user", content=content[:self.MAX_CONTENT_LENGTH]),
+            Message(role="user", content=content[: self.MAX_CONTENT_LENGTH]),
         ]
 
         response = await self.chat(messages, temperature=0.3)
@@ -115,7 +115,7 @@ class OpenAILLM(BaseLLM):
             logger.warning(
                 f"Truncating timestamped content ({len(timestamped_content)} -> {self.MAX_CONTENT_LENGTH} chars)"
             )
-            timestamped_content = timestamped_content[:self.MAX_CONTENT_LENGTH]
+            timestamped_content = timestamped_content[: self.MAX_CONTENT_LENGTH]
 
         if instruction:
             user_message = f"""用户额外指令：{instruction}

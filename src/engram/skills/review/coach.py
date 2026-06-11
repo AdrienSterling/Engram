@@ -49,7 +49,7 @@ class ReviewCoach:
         fm.update(updates)
 
         new_fm = yaml.dump(fm, allow_unicode=True, default_flow_style=False).strip()
-        new_content = f"---\n{new_fm}\n---\n" + content[match.end():]
+        new_content = f"---\n{new_fm}\n---\n" + content[match.end() :]
 
         filepath.write_text(new_content, encoding="utf-8")
 
@@ -84,13 +84,15 @@ class ReviewCoach:
 
             if next_review <= today:
                 summary = self._extract_summary(content)
-                due_items.append({
-                    "title": fm.get("title", filepath.stem),
-                    "filepath": str(filepath),
-                    "summary": summary,
-                    "review_count": fm.get("review_count", 0),
-                    "review_status": fm.get("review_status", "pending"),
-                })
+                due_items.append(
+                    {
+                        "title": fm.get("title", filepath.stem),
+                        "filepath": str(filepath),
+                        "summary": summary,
+                        "review_count": fm.get("review_count", 0),
+                        "review_status": fm.get("review_status", "pending"),
+                    }
+                )
 
         due_items.sort(key=lambda x: x["review_count"])
         return due_items
@@ -116,9 +118,11 @@ class ReviewCoach:
         """Generate review questions based on the content."""
         prompt = QUESTION_GENERATION.format(title=title, summary=summary)
 
-        response = await self.llm.chat([
-            type("Message", (), {"role": "user", "content": prompt})()
-        ], temperature=0.7, max_tokens=2048)
+        response = await self.llm.chat(
+            [type("Message", (), {"role": "user", "content": prompt})()],
+            temperature=0.7,
+            max_tokens=2048,
+        )
 
         return self._parse_questions(response.content)
 
@@ -141,9 +145,7 @@ class ReviewCoach:
 
         return questions
 
-    async def evaluate_answer(
-        self, question: str, expected_answer: str, user_answer: str
-    ) -> str:
+    async def evaluate_answer(self, question: str, expected_answer: str, user_answer: str) -> str:
         """Evaluate user's answer and provide feedback."""
         prompt = ANSWER_EVALUATION.format(
             question=question,
@@ -151,9 +153,11 @@ class ReviewCoach:
             user_answer=user_answer,
         )
 
-        response = await self.llm.chat([
-            type("Message", (), {"role": "user", "content": prompt})()
-        ], temperature=0.5, max_tokens=512)
+        response = await self.llm.chat(
+            [type("Message", (), {"role": "user", "content": prompt})()],
+            temperature=0.5,
+            max_tokens=512,
+        )
 
         return response.content.strip()
 
@@ -161,9 +165,11 @@ class ReviewCoach:
         """Generate a review session summary."""
         prompt = REVIEW_SUMMARY.format(title=title, qa_pairs=qa_pairs)
 
-        response = await self.llm.chat([
-            type("Message", (), {"role": "user", "content": prompt})()
-        ], temperature=0.5, max_tokens=512)
+        response = await self.llm.chat(
+            [type("Message", (), {"role": "user", "content": prompt})()],
+            temperature=0.5,
+            max_tokens=512,
+        )
 
         return response.content.strip()
 
